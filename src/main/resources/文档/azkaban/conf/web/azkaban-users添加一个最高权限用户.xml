@@ -1,0 +1,8 @@
+<azkaban-users>
+  <user groups="azkaban" password="azkaban" roles="admin" username="azkaban"/>
+  <user password="metrics" roles="metrics" username="metrics"/>
+   添加一个用户作为最高权限
+<user password="user1" roles="metrics,admin" username="atguigu"/>
+  <role name="admin" permissions="ADMIN"/>
+  <role name="metrics" permissions="METRICS"/>
+</azkaban-users>

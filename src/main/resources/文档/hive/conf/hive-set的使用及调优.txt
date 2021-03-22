@@ -1,0 +1,36 @@
+1.输出合并小文件
+SET hive.merge.mapfiles = true; -- 默认true，在map-only任务结束时合并小文件
+SET hive.merge.mapredfiles = true; -- 默认false，在map-reduce任务结束时合并小文件
+SET hive.merge.size.per.task = 268435456; -- 默认256M
+SET hive.merge.smallfiles.avgsize = 16777216; -- 当输出文件的平均大小小于16m该值时，启动一个独立的map-reduce任务进行文件merge
+
+2.开启JVM重用
+set mapreduce.job.jvm.numtasks=10
+
+3.开启map端combiner（不影响最终业务逻辑）
+set hive.map.aggr=true；
+
+4.设置压缩
+set hive.exec.compress.intermediate=true --启用中间数据压缩
+set mapreduce.map.output.compress=true --启用最终数据压缩
+set mapreduce.map.outout.compress.codec=…; --设置压缩方式
+org.apache.hadoop.io.compress.Lz4Codec
+
+5.设置reduce task个数
+set mapreduce.job.reduces=3;
+//没有设置reduces个数时,用文件大小除reduce默认大小
+set hive.exec.reducers.bytes.per.reducer配置，默认256MB
+// 最大的reduces个数
+set hive.exec.reducers.max配置，默认1009
+
+6.调整map task个数
+//修改读不了小文件
+set mapreduce.input.fileinputformat.split.minsize.per.node= 默认1B
+//修改来调节map数,对小文件没效果
+set mapreduce.input.fileinputformat.split.maxsize= 默认256MB
+
+7.开启数据倾斜时的负载均衡
+当选项设定为true，生成的查询计划会有两个MRJob。
+set hive.groupby.skewindata=true;
+
+

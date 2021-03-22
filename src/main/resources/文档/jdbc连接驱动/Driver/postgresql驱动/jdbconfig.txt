@@ -1,0 +1,3 @@
+url : jdbc:postgresql://目标主机IP:5432/数据库
+user : dbuser
+password : dbuser

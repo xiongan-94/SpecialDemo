@@ -1,0 +1,28 @@
+yarn-site
+
+(1)NodeManager默认内存8G，需要根据服务器实际配置灵活调整，例如128G内存，配置为100G内存左右
+
+  <property>
+    <description>可以分配给容器的物理内存量，单位为MB。如果设置为-1并且yarn.nodemanager.resource.detect-hardware-capabilities为true，则会自动计算(在Windows和Linux下)。
+	在其他情况下，默认值为8192MB。
+    </description>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>-1</value>
+  </property>
+
+  <property>
+    <description>启用自动检测节点功能，如内存和CPU。默认false
+    </description>
+    <name>yarn.nodemanager.resource.detect-hardware-capabilities</name>
+    <value>false</value>
+  </property>
+  
+  
+(2) 单任务默认内存8G，需要根据该任务的数据量灵活调整，例如128m数据，配置1G内存
+  <property>
+    <description>The maximum allocation for every container request at the RM
+    in MBs. Memory requests higher than this will throw an
+    InvalidResourceRequestException.</description>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>8192</value>
+  </property>

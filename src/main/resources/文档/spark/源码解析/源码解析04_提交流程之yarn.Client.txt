@@ -1,0 +1,33 @@
+org.apache.spark.deploy.yarn.Client
+
+//1.接SparkSubmit最后  1176
+def run():
+
+//2.提交应用,代码封装  1177
+this.appId = submitApplication()
+
+//3.初始化yarnClient(用于跟RM通信的)  171
+yarnClient.init(hadoopConf)
+yarnClient.start()
+
+//4.创建资源容器   196
+containerContext = createContainerLaunchContext(newAppResponse){
+
+	//5.构建集合对象用于存放启动命令   882
+	val javaOpts = ListBuffer[String]()
+
+	//6.根据集群或者客户端模式,选择运行的主类   979
+	amClass =
+	if (isClusterMode) {
+	Utils.classForName("org.apache.spark.deploy.yarn.ApplicationMaster")}
+
+	//7.封装命令   999
+	commands=$JAVA_HOME/bin/java -server -Xms M ApplicationMaster --class WordCount
+}
+
+//8.将containerContext封装进appContext  197
+val appContext = createApplicationSubmissionContext(newApp, containerContext)
+
+//9.向RM提交应用  202
+yarnClient.submitApplication(appContext)
+

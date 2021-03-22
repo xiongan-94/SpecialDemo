@@ -1,0 +1,75 @@
+org.apache.spark.deploy.yarn.ApplicationMaster
+
+
+//1.程序入口   840
+main()
+
+//2.创建自身对象   859
+master = new ApplicationMaster(amArgs, sparkConf, yarnConf)
+
+//3.启动任务   890
+master.run()
+
+//4.启动Driver   263
+if (isClusterMode) {
+	runDriver(){
+	
+		//5.通过类加载器获取用户类的Main方法  718
+		val mainMethod = userClassLoader.loadClass(args.userClass)
+		  .getMethod("main", classOf[Array[String]])
+		  
+		//6.创建线程,封装用户类的Main方法  728
+		val userThread = new Thread {
+			mainMethod.invoke(null, userArgs.toArray)
+		  }
+		  
+		//7.设置线程名并启动  758
+		userThread.setName("Driver")
+		userThread.start()
+	}
+} else {
+	runExecutorLauncher()
+}
+
+//5.申请资源方法封装   512
+createAllocator(driverRef, userConf, rpcEnv, appAttemptId, distCacheConf)
+
+//6.创建资源分配器并分配资源   465  479
+allocator = client.createAllocator0
+allocator.allocateResources(){
+
+	YarnAllocator：
+	//7.申请资源    262
+	val allocateResponse = amClient.allocate(progressIndicator)
+	
+	//8.处理资源    274
+	handleAllocatedContainers(allocatedContainers.asScala)
+	
+	//9.处理资源
+	matchContainerToRequest(allocatedContainer, rack, containersToUse,remainingAfterRackMatches)
+	
+	//10.启动Container
+	runAllocatedContainers(containersToUse){
+		
+		//11.  558
+		new ExecutorRunnable().
+			//63
+			run(){
+			
+			//初始化nmClient(用于与NM通信)
+			nmClient.init(conf)
+			nmClient.start()
+			
+			startContainer()
+			
+			//封装命令
+			val commands = prepareCommand(){
+				bin/java YarnCoarseGrainedExecutorBackend
+			}
+			//将命令设置进上下文环境
+			ctx.setCommands(commands.asJava)
+			//向NM提交请求(启动EB,执行命令)
+			nmClient.startContainer(container.get, ctx)
+		}
+	}
+}

@@ -1,0 +1,11 @@
+yarn-site
+
+(1)NameNode有一个工作线程池，用来处理不同DataNode的并发心跳以及客户端并发的元数据操作。dfs.namenode.handler.count=  20 * loge(cluster size)，比如集群规模为8台时，此参数设置为41。
+
+<property>
+  <name>dfs.namenode.handler.count</name>
+  <value>10</value>
+  <description>监听来自客户端的请求的Namenode RPC服务器线程的数量。
+  如果dfs.namenode.servicerpc-address没有配置，那么Namenode RPC服务器线程监听来自所有节点的请求。
+  </description>
+</property>

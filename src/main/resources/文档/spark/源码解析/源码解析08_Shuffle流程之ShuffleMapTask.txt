@@ -1,0 +1,48 @@
+任务运行:Shuffle
+
+Executor:run{
+	//440
+	val res = task.run()
+}
+
+Task:run(){
+	//127
+	runTask(context)
+}
+
+ShuffleMapTask:runTask{
+	//写出数据 99
+	dep.shuffleWriterProcessor.write(rdd, dep, mapId, context, partition)
+	
+	//获取ShuffleWriter 52
+	var writer: ShuffleWriter[Any, Any]=manager.getWriter
+	
+	//写出数据 58
+	writer.write
+}
+
+SortShuffleWriter:{
+	write(){
+		//准备溢写 62
+		sorter.insertAll(records)
+		
+		//判断是否需要溢写 ExternalSorter:196
+		maybeSpillCollection()
+		
+		//判断是否需要溢写 ExternalSorter:218
+		maybeSpill(map, estimatedSize)
+		
+		//申请内存 Spillable:87
+		val granted = acquireMemory(amountToRequest)
+		
+		//内存申请不够,触发溢写  Spillable:98
+		spill(collection)
+		
+		//将内存数据溢写至磁盘  ExternalSorter:241
+		val spillFile = spillMemoryIteratorToDisk(inMemoryIterator)
+		spills += spillFile
+		
+		//将磁盘文件以及最后一次在内存中没有达到阈值的数据进行合并
+		merge(spills: Seq[SpilledFile], inMemory: Iterator[((Int, K), C)])
+	}
+}

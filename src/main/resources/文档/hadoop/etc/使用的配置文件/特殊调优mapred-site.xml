@@ -1,0 +1,144 @@
+mapred-site
+
+(1)JNM重用
+<property>
+    <name>mapreduce.job.jvm.numtasks</name>
+    <value>10</value>
+    <description>value表示重用次数,-1表示没限制</description>
+</property>
+
+(2)减少对溢写文件的merge次数
+<property>
+  <name>mapreduce.task.io.sort.factor</name>
+  <value>10</value>
+  <description>一次merge合并的文件数</description>
+</property>
+
+(3)增大环形缓冲区的大小
+<property>
+  <name>mapreduce.task.io.sort.mb</name>
+  <value>100</value>
+  <description>环形缓冲区的大小,默认情况下,每个merge流1m是最小值</description>
+</property>
+
+(4)增大触发溢写的环形缓冲区百分比
+<property>
+  <name>mapreduce.map.sort.spill.percent</name>
+  <value>0.80</value>
+  <description>序列化缓冲区中的软限制。一旦到达，线程将开始将内容溢出到后台的磁盘。请注意，溢写时,收集将不会停止，因此当溢出设置为小于0.5时，缓存区内存占用可能会大于此阈值</description>
+</property>
+
+(5)合理设置Map和Reduce数：两个都不能设置太少，也不能设置太多。太少，会导致Task等待，延长处理时间；太多，会导致 Map、Reduce任务间竞争资源，造成处理超时等错误
+
+maptask个数
+<property>
+  <name>mapreduce.job.maps</name>
+  <value>2</value>
+  <description>每个作业的默认映射任务数。当mapreduce.framework.name为"local"时忽略。
+  </description>
+</property>
+
+reduces个数
+<property>
+  <name>mapreduce.job.reduces</name>
+  <value>1</value>
+  <description>默认的reduces个数,当mapreduce.framework.name为"local"时忽略。
+  </description>
+</property>
+
+(6) 设置Map、Reduce共存：调整slowstart.completedmaps参数，使Map运行到一定程度后，Reduce也开始运行，减少Reduce的等待时间
+<property>
+  <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+  <value>0.05</value>
+  <description>reduce 启动前map完成的数量
+  </description>
+</property>
+
+
+(7)集群性能可以的前提下，增大Reduce端存储数据内存的大小。
+
+<property>
+  <name>mapreduce.reduce.memory.mb</name>
+  <value>-1</value>
+  <description>调度程序为每个reduce任务请求的内存量。如果这个参数没有指定或者是非正的，则从mapreduce.reduce.java中推断出来。
+  选择和mapreduce.job.heap.memory-mb.ratio。如果也没有指定java-opts，则将其设置为1024。
+  </description>
+</property>
+
+
+
+(8)控制分配给MapTask内存上限，如果超过会kill掉进程（报：Container is running beyond physical memory limits. Current usage:565MB of512MB physical memory used；Killing Container）。
+默认内存大小为1G，如果数据量是128m，正常不需要调整内存；如果数据量大于128m，可以增加MapTask内存，最大可以增加到4-5g。
+<property>
+  <name>mapreduce.map.memory.mb</name>
+  <value>-1</value>
+  <description>调度程序为每个map任务请求的内存量。如果未指定或为非正数，则从mapreduce.map.java.opts和mapreduce.job.heap.memory-mb.ratio中推断。如果也没有指定java-opts，则将其设置为1024。
+  </description>
+</property>
+
+		mapreduce.map.java.opts：控制MapTask堆内存大小。（如果内存不够，报：java.lang.OutOfMemoryError）
+		mapreduce.reduce.java.opts：控制ReduceTask堆内存大小。（如果内存不够，报：java.lang.OutOfMemoryError）
+
+
+
+(9)可以增加MapTask的CPU核数，增加ReduceTask的CPU核数
+
+<property>
+  <name>mapreduce.map.cpu.vcores</name>
+  <value>1</value>
+  <description>每个map任务要从调度程序请求的虚拟内核数。
+  </description>
+</property>
+
+<property>
+  <name>mapreduce.reduce.cpu.vcores</name>
+  <value>1</value>
+  <description>为每个reduce任务从调度器请求的虚拟内核数。
+  </description>
+</property>
+
+
+
+
+## 压缩
+core-site.xml中包含的压缩方式
+org.apache.hadoop.io.compress.DefaultCodec,
+org.apache.hadoop.io.compress.GzipCodec, 
+org.apache.hadoop.io.compress.BZip2Codec,
+org.apache.hadoop.io.compress.Lz4Codec
+
+<property>
+  <name>mapreduce.map.output.compress</name>
+  <value>true</value>
+  <description>map输出端是否开启压缩
+  </description>
+</property>
+<property>
+  <name>mapreduce.map.output.compress.codec</name>
+  <value>org.apache.hadoop.io.compress.Lz4Codec</value>
+  <description>map输出端压缩方式
+  </description>
+</property>
+
+
+<property>
+  <name>mapreduce.output.fileoutputformat.compress</name>
+  <value>true</value>
+  <description>reduce输出开启压缩
+  </description>
+</property>
+<property>
+  <name>mapreduce.output.fileoutputformat.compress.codec</name>
+  <value>org.apache.hadoop.io.compress.Lz4Codec</value>
+  <description>reduce输出端压缩方式
+  </description>
+</property>
+<property>
+  <name>mapreduce.output.fileoutputformat.compress.type</name>
+  <value>RECORD</value>
+  <description>If the job outputs are to compressed as SequenceFiles, how should
+               they be compressed? Should be one of NONE, RECORD or BLOCK.
+  </description>
+</property>
+
+

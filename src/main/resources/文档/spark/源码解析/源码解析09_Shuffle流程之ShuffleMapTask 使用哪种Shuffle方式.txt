@@ -1,0 +1,35 @@
+ShuffleMapTask
+
+//运行任务  77
+runTask
+
+//反序列化任务  85
+val rddAndDep = ser.deserialize[(RDD[_], ShuffleDependency[_, _, _])]()
+
+//注册shuffleHandle
+val shuffleHandle: registerShuffle(shuffleId, this)
+
+//注册shuffleHandle具体流程
+if (SortShuffleWriter.shouldBypassMergeSort(conf, dependency)) {
+  def shouldBypassMergeSort: Boolean = {
+    if (dep.mapSideCombine) {
+      false
+    } else {
+      val bypassMergeThreshold: Int = conf.get(config.SHUFFLE_SORT_BYPASS_MERGE_THRESHOLD)
+      dep.partitioner.numPartitions <= bypassMergeThreshold
+    }
+  }
+}
+
+//根据shuffleHandle创建ShuffleWriter
+writer = manager.getWriter[Any, Any](){
+	case bypassMergeSortHandle: BypassMergeSortShuffleHandle
+		==> new BypassMergeSortShuffleWriter
+}
+
+
+
+
+
+
+

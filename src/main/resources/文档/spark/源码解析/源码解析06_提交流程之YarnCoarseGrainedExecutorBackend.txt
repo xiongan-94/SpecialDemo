@@ -1,0 +1,63 @@
+YarnCoarseGrainedExecutorBackend
+
+//1.程序入口
+def main(args: Array[String]): Unit = {
+	CoarseGrainedExecutorBackend extends IsolatedRpcEndpoint:执行器通信后台
+	CoarseGrainedExecutorBackend.run(backendArgs, createFn)
+}
+
+//2.创建RPC环境   289
+val fetcher = RpcEnv.create()
+
+//3.设置Driver引用(主动向Driver通信)   303
+driver = fetcher.setupEndpointRefByURI(arguments.driverUrl)
+
+//4.设置节点信息   334
+env.rpcEnv.setupEndpoint("Executor",
+        backendCreateFn(env.rpcEnv, arguments, env, cfg.resourceProfile))
+
+//5.启动任务   82
+onStart()
+
+//6.向Driver发送"注册"消息   93
+ref.ask[Boolean](RegisterExecutor)
+处理消息是在CoarseGrainedSchedulerBackend端
+
+//7.向自身发送"注册成功"消息   97
+self.send(RegisteredExecutor)
+
+//8.处理"注册成功"消息   148
+case RegisteredExecutor =>{
+
+	//9.创建Executor   151
+	executor = new Executor()
+	
+	//10.向Driver发送"创建Executor成功"消息  153
+	driver.get.send(LaunchedExecutor(executorId))
+}
+
+Driver接收到"创建Executor成功"消息以后,makeOffers
+向Executor发送"启动任务"消息
+
+//11.处理Driver发送来的"启动任务"消息    159
+case LaunchTask(data) => {
+
+	//12.启动任务    166
+	executor.launchTask(this, taskDesc){
+		//13.   226
+		val tr = new TaskRunner(context, taskDescription)
+		//14.   228   
+		threadPool.execute(tr)
+		//15.   440
+		val res = task.run()
+		//16.   Task:127
+		runTask(context)：ShuffleMapTask、ResultTask
+	}
+}
+
+
+
+
+
+
+

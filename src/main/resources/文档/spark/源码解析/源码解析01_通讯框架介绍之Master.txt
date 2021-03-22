@@ -1,0 +1,42 @@
+org.apache.spark.deploy.master.Master
+extends ThreadSafeRpcEndpoint
+
+life-cycle:constructor -> onStart -> receive* -> onStop
+
+//1.程序入口  1116
+main()
+
+//2.启动通信环境以及设置节点   1122
+startRpcEnvAndEndpoint(args.host,args.port,args.webUiPort, conf)
+
+//3.启动通信环境   1138
+val rpcEnv = RpcEnv.create(SYSTEM_NAME, host, port, conf, securityMgr){
+	new NettyRpcEnvFactory().create(config)
+}
+
+//4.设置节点      1139
+val masterEndpoint = rpcEnv.setupEndpoint(ENDPOINT_NAME,new Master)
+
+//5.启动Master    
+onStart()       141
+
+//6.以固定频率给自身发送"校验Worker是否挂掉"消息   153
+forwardMessageThread.scheduleAtFixedRate{
+	self.send(CheckForWorkerTimeOut)
+}
+
+//7.处理"校验Worker是否挂掉"消息   428
+case CheckForWorkerTimeOut => timeOutDeadWorkers()
+
+//8.处理"校验Worker是否挂掉"消息逻辑  1050
+workers.filter(_.lastHeartbeat < currentTime - workerTimeoutMs)
+
+
+
+
+
+
+
+
+
+

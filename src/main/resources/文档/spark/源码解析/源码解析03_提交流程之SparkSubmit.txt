@@ -1,0 +1,54 @@
+org.apache.spark.deploy.SparkSubmit
+
+--master             yarn
+--deploy-mode	     cluster
+--class              com.atguigu.app.WordCount
+--executor-nums
+--executor-cores
+--executor-memory
+--driver-cores
+--driver-memory
+wordcount.jar
+
+//1.程序入口  946
+def main(args: Array[String])
+
+//2.提交  948
+submit.doSubmit(args)
+
+//3.解析参数  85
+val appArgs = parseArguments(args)
+action = Option(action).getOrElse(SUBMIT)
+
+//4.提交  90
+appArgs.action match {
+	case SparkSubmitAction.SUBMIT => submit(appArgs, uninitLog)
+}
+
+//5.运行主方法  158
+def doRunMain(): Unit = {
+	runMain(args, uninitLog)
+}
+
+//6.准备提交环境,childMainClass  871
+val (childArgs, childClasspath, sparkConf, childMainClass) = prepareSubmitEnvironment(args){
+	var childMainClass = ""
+	if(deployMode == CLIENT)==>childMainClass = args.mainClass(WordCount)
+	if(isYarnCluster)==>childMainClass = YARN_CLUSTER_SUBMIT_CLASS
+			"org.apache.spark.deploy.yarn.YarnClusterApplication"
+}
+
+//7.通过反射的反射获取mainClass  890  893
+var mainClass: Class[_] = null
+mainClass = Utils.classForName(childMainClass)
+
+//8.创建APP,将反射得到的对象进行强转   911
+val app: SparkApplication = if (classOf[SparkApplication].isAssignableFrom(mainClass)) {
+ mainClass.getConstructor().newInstance().asInstanceOf[SparkApplication]
+ }
+ 
+//9.启动APP   928
+app.start(childArgs.toArray, sparkConf){
+	YarnClusterApplication:start()
+	new yarn.Client(new ClientArguments(args), conf, null).run()
+}

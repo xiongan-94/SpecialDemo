@@ -1,0 +1,69 @@
+org.apache.spark.SparkContext
+
+SchedulerBackend:通信器(与Executor通信)
+DAGScheduler:切分任务(Stage划分以及Task划分)
+TaskScheduler:排序任务(任务调度器:FIFO,FAIR)
+
+************************RDD************************
+//1. 
+foreach
+
+//2.
+runJob
+
+//3.
+dagScheduler.runJob
+
+************************DAGScheduler************************
+//4.
+val waiter = submitJob
+
+//5.
+eventProcessLoop.post(JobSubmitted())
+
+//6.
+case JobSubmitted ==>{
+	dagScheduler.handleJobSubmitted
+}
+
+//7.
+var finalStage: ResultStage = createResultStage{
+	val parents = getOrCreateParentStages(rdd, jobId){
+		getShuffleDependencies(rdd).map
+	}
+	val stage = new ResultStage(id, rdd, func, partitions, parents, jobId, callSite)
+}
+
+//8.
+submitStage(finalStage)
+
+//9.
+submitMissingTasks(stage, jobId.get)
+
+//10.
+taskScheduler.submitTasks
+
+**********TaskScheduler(TaskSchedulerImpl)**********
+//11.   215
+submitTasks
+
+//12.   219
+val manager = createTaskSetManager(taskSet, maxTaskFailures)
+
+//13.   237
+schedulableBuilder.addTaskSetManager(manager, manager.taskSet.properties)
+
+//14.   254
+backend.reviveOffers()
+
+//15.   
+case ReviveOffers => makeOffers()
+
+//16.   300
+scheduler.resourceOffers(workOffers)
+
+//17.   436
+val sortedTaskSets = rootPool.getSortedTaskSetQueue.filterNot(_.isZombie)
+
+//18.   102 Pool
+schedulableQueue.asScala.toSeq.sortWith(taskSetSchedulingAlgorithm.comparator)

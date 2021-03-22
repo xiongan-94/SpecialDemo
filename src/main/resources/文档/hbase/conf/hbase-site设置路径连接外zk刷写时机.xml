@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  hbase根目录,设置一个hdfs路径
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://hadoop102:8020/hbase</value>
+  </property>
+  集群分布式开启
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+  </property>
+  zk集群
+  <property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>hadoop102,hadoop103,hadoop104</value>
+  </property>
+  
+  ############调优################ 
+  
+  提高健壮性,在hbase的lib中hadoop内容和使用的hadoop内容一致时,可以使用true
+  <property>
+    <name>hbase.unsafe.stream.capability.enforce</name>
+    <value>false</value>
+  </property>
+  
+  <property>
+        <name>hbase.master.maxclockskew</name>
+        <value>180000</value>
+        <description>hbase集群时间不同步允许的时间差</description>
+  </property>
+
+
+  <property>
+        <name>hbase.hregion.memstore.flush.size</name>
+        <value>134217728</value>
+        <description>如果内存区的大小超过此字节数，则内存区将刷新到磁盘。
+		值由运行每个hbase.server.thread.wakefrequency的线程检查。</description>
+  </property>
+
+  <property>
+        <name>hbase.hregion.memstore.block.multiplier</name>
+        <value>4</value>
+        <description>当memstore的大小达到了
+hbase.hregion.memstore.flush.size（默认值128M）* hbase.hregion.memstore.block.multiplier（默认值4）
+时，会阻止继续往该memstore写数据。
+        </description>
+  </property>
+  
+  <property>
+        <name>hbase.hregion.memstore.block.multiplier</name>
+        <value>4</value>
+        <description>当memstore的大小达到了
+hbase.hregion.memstore.flush.size（默认值128M）* hbase.hregion.memstore.block.multiplier（默认值4）
+时，会阻止继续往该memstore写数据。
+        </description>
+  </property>
+
+当region server中memstore的总大小达到
+java_heapsize(默认1G)*hbase.regionserver.global.memstore.size（默认值0.4）*hbase.regionserver.global.memstore.size.lower.limit（默认值0.95），
+region会按照其所有memstore的大小顺序（由大到小）依次进行刷写。直到region server中所有memstore的总大小减小到上述值以下。
+当region server中memstore的总大小达到
+java_heapsize*hbase.regionserver.global.memstore.size（默认值0.4）
+时，会阻止继续往所有的memstore写数据。
+
+  <property>
+        <name>hbase.regionserver.optionalcacheflushinterval</name>
+        <value>3600000</value>
+        <description>默认1小时进行刷写
+        </description>
+  </property>
+  
+  
+  
+  <property>
+        <name>hbase.hregion.max.filesize</name>
+        <value>10737418240</value>
+        <description>region 第一次按照2倍的刷写内存分裂,之后按照这个值分裂
+        </description>
+  </property>
+  
+  <property>
+        <name>zookeeper.session.timeout</name>
+        <value>900000</value>
+        <description>默认值为90000毫秒（90s）。当某个RegionServer挂掉，90s之后Master才能察觉到。
+		可适当减小此值，以加快Master响应，可调整至600000毫秒。
+        </description>
+  </property>
+  
+  <property>
+        <name>hbase.regionserver.handler.count</name>
+        <value>30</value>
+        <description>默认值为30，用于指定RPC监听的数量，可以根据客户端的请求数进行调整，
+		读写请求较多时，增加此值。
+        </description>
+  </property>
+  
+  <property>
+        <name>hbase.hregion.majorcompaction</name>
+        <value>604800000</value>
+        <description>默认值：604800000秒（7天）， Major Compaction的周期，
+		若关闭自动Major Compaction，可将其设为0
+        </description>
+  </property>
+  
+  属性：hbase.hregion.max.filesize
+解释：默认值10737418240（10GB），如果需要运行HBase的MR任务，可以减小此值，
+因为一个region对应一个map任务，如果单个region过大，会导致map任务执行时间过长。
+该值的意思就是，如果HFile的大小达到这个数值，则这个region会被切分为两个Hfile。
+
+属性：hbase.client.write.buffer
+解释：默认值2097152bytes（2M）用于指定HBase客户端缓存，增大该值可以减少RPC调用次数，但是会消耗更多内存，反之则反之。一般我们需要设定一定的缓存大小，以达到减少RPC次数的目的。
+
+属性：hbase.client.scanner.caching
+解释：用于指定scan.next方法获取的默认行数，值越大，消耗内存越大。
+
+属性：hfile.block.cache.size
+解释：默认0.4，读请求比较多的情况下，可适当调大
+属性：hbase.regionserver.global.memstore.size
+解释：默认0.4，写请求较多的情况下，可适当调大
+
+
+</configuration>
